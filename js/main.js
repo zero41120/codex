@@ -22,19 +22,19 @@ function doCalculate() {
   const totalReserve = reserves.reduce((a, b) => a + b, 0);
   const hero = document.getElementById('hero').value;
   const stat = statSelect.value;
-  const baseH = CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT
-    ? parseInt(document.getElementById('baseHealth').value, 10) : 0;
-  const baseS = CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT
-    ? parseInt(document.getElementById('baseShield').value, 10) : 0;
-  const baseA = CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT
-    ? parseInt(document.getElementById('baseArmor').value, 10) : 0;
-
   const useAll = document.getElementById('useAllSlots').checked;
   const slotStats = useAll ? Array(CONSTANTS.MAX_ITEMS).fill(stat)
-    : Array.from({length: CONSTANTS.MAX_ITEMS}, (_, i) => {
-        const val = document.getElementById(`slot${i+1}`).value;
+    : Array.from({ length: CONSTANTS.MAX_ITEMS }, (_, i) => {
+        const val = document.getElementById(`slot${i + 1}`).value;
         return val || stat;
       });
+
+  const needsBase = slotStats.some(s =>
+    CONSTANTS.HP_STATS.includes(s) || s === CONSTANTS.HIT_POINT_STAT
+  );
+  const baseH = needsBase ? parseInt(document.getElementById('baseHealth').value, 10) : 0;
+  const baseS = needsBase ? parseInt(document.getElementById('baseShield').value, 10) : 0;
+  const baseA = needsBase ? parseInt(document.getElementById('baseArmor').value, 10) : 0;
   
   // Calculate available cash after reserves
   const availableCash = Math.max(0, cash - totalReserve);
@@ -100,7 +100,12 @@ document.getElementById('cash').addEventListener('keydown', e => {
 document.getElementById('stat').addEventListener('change', ui.showBaseHPIfNeeded);
 document.getElementById('useAllSlots').addEventListener('change', e => {
   document.getElementById('slotSelects').style.display = e.target.checked ? 'none' : 'block';
+  ui.showBaseHPIfNeeded();
 });
+for (let i = 1; i <= CONSTANTS.MAX_ITEMS; i++) {
+  const sel = document.getElementById(`slot${i}`);
+  sel.addEventListener('change', ui.showBaseHPIfNeeded);
+}
 
 // Initialize the app
 loadData();

@@ -32,9 +32,20 @@ export const ui = {
   },
   
   showBaseHPIfNeeded: () => {
-    const stat = document.getElementById('stat').value;
-    document.getElementById('baseStats-label').style.display = 
-      CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT ? "" : "none";
+    const mainStat = document.getElementById('stat').value;
+    let show = CONSTANTS.HP_STATS.includes(mainStat) || mainStat === CONSTANTS.HIT_POINT_STAT;
+
+    const useAll = document.getElementById('useAllSlots')?.checked;
+    if (!useAll) {
+      for (let i = 1; i <= CONSTANTS.MAX_ITEMS && !show; i++) {
+        const val = document.getElementById(`slot${i}`).value || mainStat;
+        if (CONSTANTS.HP_STATS.includes(val) || val === CONSTANTS.HIT_POINT_STAT) {
+          show = true;
+        }
+      }
+    }
+
+    document.getElementById('baseStats-label').style.display = show ? '' : 'none';
   },
 
   populateSlotSelectors: (stats) => {
