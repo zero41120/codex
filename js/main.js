@@ -18,8 +18,11 @@ function doCalculate() {
   
   // Get form values
   const cash = parseInt(document.getElementById('cash').value, 10);
-  const reserves = [1, 2, 3, 4, 5].map(i => parseInt(document.getElementById('reserve' + i).value, 10) || 0);
-  const totalReserve = reserves.reduce((a, b) => a + b, 0);
+  const reserveIds = [1, 2, 3, 4, 5].map(i => document.getElementById('reserve' + i).value);
+  const totalReserve = reserveIds.reduce((sum, id) => {
+    const item = state.items.find(it => it.id === id);
+    return sum + (item ? item.cost : 0);
+  }, 0);
   const hero = document.getElementById('hero').value;
   const stat = statSelect.value;
   const baseH = CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT 
@@ -87,6 +90,7 @@ async function loadData() {
     
     ui.populateStatOptions(dataFns.getStatTypes(state.items));
     ui.populateHeroes();
+    ui.populateReserveSelectors();
     
     document.getElementById('loading').textContent = "";
   } catch (error) {
@@ -106,6 +110,9 @@ document.getElementById('stat').addEventListener('change', () => {
 });
 document.getElementById('useAllSlots').addEventListener('change', () => {
   document.getElementById('slotConfig').style.display = document.getElementById('useAllSlots').checked ? 'none' : '';
+});
+document.getElementById('hero').addEventListener('change', () => {
+  ui.populateReserveSelectors();
 });
 
 // Initialize the app
