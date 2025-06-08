@@ -5,8 +5,8 @@ import * as util from './utils.js';
 export const calcFns = {
   // Unified search function for all stat types
   search: (params) => {
-    const { items, cash, hero, stat, baseH, baseS, baseA, maxItems } = params;
-    const { HP_STATS, HIT_POINT_STAT, WEAPON_EFFECT_STAT } = CONSTANTS;
+    const { items, cash, hero, stat, baseH, baseS, baseA, maxItems, customStats } = params;
+    const { HP_STATS, HIT_POINT_STAT, WEAPON_EFFECT_STAT, CUSTOM_WEIGHTED_STAT } = CONSTANTS;
     
     // Filter relevant items
     const relevant = items.filter(it => 
@@ -17,9 +17,13 @@ export const calcFns = {
     if (stat === HIT_POINT_STAT) {
       return calcFns.calculateHitPointCombo(relevant, cash, baseH, baseS, baseA, maxItems);
     }
-    
+
     if (stat === WEAPON_EFFECT_STAT) {
       return calcFns.calculateWeaponEffectCombo(relevant, cash, hero, maxItems);
+    }
+
+    if (stat === CUSTOM_WEIGHTED_STAT) {
+      return calcFns.calculateCustomWeightedCombo(relevant, cash, hero, params.customStats || [], maxItems);
     }
     
     if (HP_STATS.includes(stat)) {
@@ -421,5 +425,70 @@ export const calcFns = {
     });
 
     return best;
+  },
+
+  calculateCustomWeightedCombo: (relevant, cash, hero, statWeights, maxItems) => {
+    if (!statWeights.length) {
+      return { max: 0, picked: [], alternatives: [], perStat: {} };
+    }
+
+    let max = -Infinity;
+    let bestCombos = [];
+
+    const getTotals = (picked) => {
+      const totals = {};
+      statWeights.forEach(({ stat }) => totals[stat] = 0);
+      picked.forEach(it => {
+        statWeights.forEach(({ stat }) => {
+          totals[stat] += dataFns.getStatValue(it, hero, stat);
+        });
+      });
+      return totals;
+    };
+
+    const searchRecursive = (i, curCash, picked) => {
+      if (picked.length > maxItems) return;
+
+      if (i >= relevant.length) {
+        const totals = getTotals(picked);
+        const score = statWeights.reduce((s, { stat, weight }) => s + totals[stat] * weight, 0);
+
+        if (score > max) {
+          max = score;
+          bestCombos = [{ items: [...picked], cost: curCash, totals, score }];
+        } else if (score === max && max > -Infinity && !bestCombos.some(c => util.arraysEqual(c.items, picked))) {
+          bestCombos.push({ items: [...picked], cost: curCash, totals, score });
+        }
+        return;
+      }
+
+      // Skip this item
+      searchRecursive(i + 1, curCash, picked);
+
+      const item = relevant[i];
+      if (curCash + item.cost <= cash) {
+        picked.push(item);
+        searchRecursive(i + 1, curCash + item.cost, picked);
+        picked.pop();
+      }
+    };
+
+    searchRecursive(0, 0, []);
+
+    if (!bestCombos.length) {
+      return { max: 0, picked: [], alternatives: [], perStat: {} };
+    }
+
+    const minCost = Math.min(...bestCombos.map(c => c.cost));
+    const best = bestCombos.filter(c => c.cost === minCost);
+    const alternatives = bestCombos.filter(c => c.cost > minCost);
+
+    return {
+      max: best[0].score,
+      picked: best[0].items,
+      bestCost: best[0].cost,
+      alternatives,
+      perStat: best[0].totals
+    };
   }
 };

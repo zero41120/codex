@@ -17,6 +17,8 @@ export const ui = {
     select.disabled = !stats.length;
     ui.showBaseHPIfNeeded();
     ui.populateSlotSelectors();
+    ui.populateComboSelectors();
+    ui.showCustomComboIfNeeded();
   },
   
   populateHeroes: () => {
@@ -34,7 +36,12 @@ export const ui = {
   showBaseHPIfNeeded: () => {
     const stat = document.getElementById('stat').value;
     document.getElementById('baseStats-label').style.display =
-      CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT ? "" : "none";
+      CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT || stat === CONSTANTS.CUSTOM_WEIGHTED_STAT ? "" : "none";
+  },
+
+  showCustomComboIfNeeded: () => {
+    const stat = document.getElementById('stat').value;
+    document.getElementById('customCombo').style.display = stat === CONSTANTS.CUSTOM_WEIGHTED_STAT ? '' : 'none';
   },
 
   populateSlotSelectors: () => {
@@ -55,6 +62,24 @@ export const ui = {
         sel.appendChild(op);
       });
       sel.value = Array.from(sel.options).some(o => o.value === prev) ? prev : 'main';
+    });
+  },
+
+  populateComboSelectors: () => {
+    const stats = Array.from(document.getElementById('stat').options)
+      .map(o => o.value)
+      .filter(s => s !== CONSTANTS.CUSTOM_WEIGHTED_STAT);
+    const selects = document.querySelectorAll('.combo-select');
+    selects.forEach(sel => {
+      const prev = sel.value;
+      sel.innerHTML = '';
+      stats.forEach(stat => {
+        const op = document.createElement('option');
+        op.value = stat;
+        op.textContent = CONSTANTS.STAT_DISPLAY_NAMES[stat] || stat;
+        sel.appendChild(op);
+      });
+      sel.value = stats.includes(prev) ? prev : stats[0];
     });
   },
 
@@ -97,7 +122,7 @@ export const ui = {
 
   renderResultString: (result, params) => {
     const { stat, baseH, baseS, baseA, hero } = params;
-    const { HIT_POINT_STAT, WEAPON_EFFECT_STAT, HP_STATS, STAT_DISPLAY_NAMES } = CONSTANTS;
+    const { HIT_POINT_STAT, WEAPON_EFFECT_STAT, CUSTOM_WEIGHTED_STAT, HP_STATS, STAT_DISPLAY_NAMES } = CONSTANTS;
 
     const statLabel = STAT_DISPLAY_NAMES[stat] || stat;
     let html = '';
@@ -119,6 +144,15 @@ export const ui = {
       html = `
         <div>Max <b>${statLabel}</b> achievable: <span style="color:#20baa2">+${percentIncrease}%</span>
           (WP: +${result.wp}%, AS: +${result.as}%, <span style="color:#4db6ac">${result.bestCost || 0} cash</span>)
+        </div>
+      `;
+    } else if (stat === CUSTOM_WEIGHTED_STAT) {
+      const parts = Object.keys(result.perStat || {}).map(s => {
+        return `${STAT_DISPLAY_NAMES[s] || s}: +${result.perStat[s]}%`;
+      }).join(', ');
+      html = `
+        <div>Max <b>${statLabel}</b> achievable: <span style="color:#20baa2">${result.max}</span>
+          (${parts}${parts ? ',' : ''} <span style="color:#4db6ac">${result.bestCost || 0} cash</span>)
         </div>
       `;
     } else if (HP_STATS.includes(stat)) {
@@ -182,6 +216,11 @@ export const ui = {
           if (wp) parts.push(`WP: +${wp}%`);
           if (as) parts.push(`AS: +${as}%`);
           statValue = parts.join(' & ');
+        } else if (stat === CUSTOM_WEIGHTED_STAT) {
+          const parts = Object.keys(result.perStat || {}).map(s =>
+            `${STAT_DISPLAY_NAMES[s] || s}: +${result.perStat[s]}%`
+          );
+          statValue = parts.join(' | ');
         } else if (HP_STATS.includes(stat)) {
           let flat = 0, percent = 0;
 
