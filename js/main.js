@@ -64,7 +64,7 @@ function doCalculate() {
       customStats,
       maxItems
     });
-    ui.renderResults(result, { stat, hero });
+    ui.renderResults(result, { stat, hero, customStats });
   } else if (useAll) {
     result = calcFns.search({
       items: state.items,

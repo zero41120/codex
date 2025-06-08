@@ -1,6 +1,7 @@
 import { CONSTANTS } from './constants.js';
 import { state } from './state.js';
 import * as util from './utils.js';
+import * as dataFns from './dataFunctions.js';
 
 export const ui = {
   populateStatOptions: (stats) => {
@@ -126,7 +127,7 @@ export const ui = {
   },
 
   renderResultString: (result, params) => {
-    const { stat, baseH, baseS, baseA, hero } = params;
+    const { stat, baseH, baseS, baseA, hero, customStats } = params;
     const { HIT_POINT_STAT, WEAPON_EFFECT_STAT, CUSTOM_WEIGHTED_STAT, HP_STATS, STAT_DISPLAY_NAMES } = CONSTANTS;
 
     const statLabel = STAT_DISPLAY_NAMES[stat] || stat;
@@ -223,9 +224,11 @@ export const ui = {
           if (as) parts.push(`AS: +${as}%`);
           statValue = parts.join(' & ');
         } else if (stat === CUSTOM_WEIGHTED_STAT) {
-          const parts = Object.keys(result.perStat || {}).map(s =>
-            `${STAT_DISPLAY_NAMES[s] || s}: +${result.perStat[s]}%`
-          );
+          const stats = (result.statWeights || customStats || []).map(sw => sw.stat);
+          const parts = stats.map(s => {
+            const val = dataFns.getStatValue(item, hero, s);
+            return val ? `${STAT_DISPLAY_NAMES[s] || s}: +${val}%` : '';
+          }).filter(Boolean);
           statValue = parts.join(' | ');
         } else if (HP_STATS.includes(stat)) {
           let flat = 0, percent = 0;

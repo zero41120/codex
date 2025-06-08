@@ -429,8 +429,13 @@ export const calcFns = {
 
   calculateCustomWeightedCombo: (relevant, cash, hero, statWeights, maxItems) => {
     if (!statWeights.length) {
-      return { max: 0, picked: [], alternatives: [], perStat: {} };
+      return { max: 0, picked: [], alternatives: [], perStat: {}, statWeights };
     }
+
+    const stats = statWeights.map(sw => sw.stat);
+    const filtered = relevant.filter(it =>
+      stats.some(s => dataFns.getStatValue(it, hero, s) > 0)
+    );
 
     let max = -Infinity;
     let bestCombos = [];
@@ -449,7 +454,7 @@ export const calcFns = {
     const searchRecursive = (i, curCash, picked) => {
       if (picked.length > maxItems) return;
 
-      if (i >= relevant.length) {
+      if (i >= filtered.length) {
         const totals = getTotals(picked);
         const score = statWeights.reduce(
           (p, { stat, weight }) => p * Math.pow(1 + totals[stat] / 100, weight),
@@ -468,7 +473,7 @@ export const calcFns = {
       // Skip this item
       searchRecursive(i + 1, curCash, picked);
 
-      const item = relevant[i];
+      const item = filtered[i];
       if (curCash + item.cost <= cash) {
         picked.push(item);
         searchRecursive(i + 1, curCash + item.cost, picked);
@@ -479,7 +484,7 @@ export const calcFns = {
     searchRecursive(0, 0, []);
 
     if (!bestCombos.length) {
-      return { max: 0, picked: [], alternatives: [], perStat: {} };
+      return { max: 0, picked: [], alternatives: [], perStat: {}, statWeights };
     }
 
     const minCost = Math.min(...bestCombos.map(c => c.cost));
@@ -491,7 +496,8 @@ export const calcFns = {
       picked: best[0].items,
       bestCost: best[0].cost,
       alternatives,
-      perStat: best[0].totals
+      perStat: best[0].totals,
+      statWeights
     };
   }
 };
