@@ -36,7 +36,7 @@ export const ui = {
   showBaseHPIfNeeded: () => {
     const stat = document.getElementById('stat').value;
     document.getElementById('baseStats-label').style.display =
-      CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT || stat === CONSTANTS.CUSTOM_WEIGHTED_STAT ? "" : "none";
+      CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT ? "" : "none";
   },
 
   showCustomComboIfNeeded: () => {
@@ -68,7 +68,12 @@ export const ui = {
   populateComboSelectors: () => {
     const stats = Array.from(document.getElementById('stat').options)
       .map(o => o.value)
-      .filter(s => s !== CONSTANTS.CUSTOM_WEIGHTED_STAT);
+      .filter(s => ![
+        CONSTANTS.CUSTOM_WEIGHTED_STAT,
+        CONSTANTS.WEAPON_EFFECT_STAT,
+        CONSTANTS.HIT_POINT_STAT,
+        ...CONSTANTS.HP_STATS
+      ].includes(s));
     const selects = document.querySelectorAll('.combo-select');
     selects.forEach(sel => {
       const prev = sel.value;
@@ -150,8 +155,9 @@ export const ui = {
       const parts = Object.keys(result.perStat || {}).map(s => {
         return `${STAT_DISPLAY_NAMES[s] || s}: +${result.perStat[s]}%`;
       }).join(', ');
+      const percentIncrease = ((result.max - 1) * 100).toFixed(2);
       html = `
-        <div>Max <b>${statLabel}</b> achievable: <span style="color:#20baa2">${result.max}</span>
+        <div>Max <b>${statLabel}</b> achievable: <span style="color:#20baa2">+${percentIncrease}%</span>
           (${parts}${parts ? ',' : ''} <span style="color:#4db6ac">${result.bestCost || 0} cash</span>)
         </div>
       `;

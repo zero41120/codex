@@ -451,7 +451,10 @@ export const calcFns = {
 
       if (i >= relevant.length) {
         const totals = getTotals(picked);
-        const score = statWeights.reduce((s, { stat, weight }) => s + totals[stat] * weight, 0);
+        const score = statWeights.reduce(
+          (p, { stat, weight }) => p * Math.pow(1 + totals[stat] / 100, weight),
+          1
+        );
 
         if (score > max) {
           max = score;
