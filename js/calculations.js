@@ -167,80 +167,24 @@ export const calcFns = {
   },
   
   calculateWeaponEffectCombo: (relevant, cash, hero, maxItems) => {
-    const effectItems = relevant.filter(it => {
-      let hasEffect = it.attributes?.some(a => ["WP", "AS"].includes(a.type));
-      if (hero === "Ashe" && it.name && ["TRIPOD", "IRONSIGHTS"].includes(it.name.toUpperCase())) {
-        hasEffect = true;
-      }
-      return hasEffect;
-    });
-    
-    let max = 0;
-    let bestCombos = [];
-    
-    const getEffectStats = (picked) => {
-      let wp = 0, as = 0;
-      
-      picked.forEach(it => {
-        if (hero === "Ashe") {
-          if (it.name?.toUpperCase() === "TRIPOD") wp += 13;
-          if (it.name?.toUpperCase() === "IRONSIGHTS") wp += 20;
-        }
-        
-        it.attributes?.forEach(a => {
-          if (a.type === "WP") wp += util.parsePercent(a.value);
-          if (a.type === "AS") as += util.parsePercent(a.value);
-        });
-      });
-      
-      return { wp, as };
-    };
-    
-    const searchRecursive = (i, curCash, picked) => {
-      if (picked.length > maxItems) return;
-      
-      if (i >= effectItems.length) {
-        const { wp, as } = getEffectStats(picked);
-        const effect = (1 + wp / 100) * (1 + as / 100);
-        
-        if (effect > max) {
-          max = effect;
-          bestCombos = [{ items: [...picked], cost: curCash, wp, as, effect }];
-        } else if (effect === max && max > 1 && !bestCombos.some(c => util.arraysEqual(c.items, picked))) {
-          bestCombos.push({ items: [...picked], cost: curCash, wp, as, effect });
-        }
-        return;
-      }
-      
-      // Skip this item
-      searchRecursive(i + 1, curCash, picked);
-      
-      // Take this item if we can afford it
-      const item = effectItems[i];
-      if (curCash + item.cost <= cash) {
-        picked.push(item);
-        searchRecursive(i + 1, curCash + item.cost, picked);
-        picked.pop();
-      }
-    };
-    
-    searchRecursive(0, 0, []);
-    
-    if (!bestCombos.length) {
-      return { max: 1, picked: [], alternatives: [], wp: 0, as: 0 };
-    }
-    
-    const minCost = Math.min(...bestCombos.map(c => c.cost));
-    const best = bestCombos.filter(c => c.cost === minCost);
-    const alternatives = bestCombos.filter(c => c.cost > minCost);
-    
+    const res = calcFns.calculateCustomWeightedCombo(
+      relevant,
+      cash,
+      hero,
+      [
+        { stat: "WP", weight: 1 },
+        { stat: "AS", weight: 1 }
+      ],
+      maxItems
+    );
+
     return {
-      max: best[0].effect,
-      picked: best[0].items,
-      bestCost: best[0].cost,
-      alternatives,
-      wp: best[0].wp,
-      as: best[0].as
+      max: res.max,
+      picked: res.picked,
+      bestCost: res.bestCost,
+      alternatives: res.alternatives,
+      wp: res.perStat.WP || 0,
+      as: res.perStat.AS || 0
     };
   },
   
