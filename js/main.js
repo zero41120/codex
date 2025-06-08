@@ -25,7 +25,15 @@ function doCalculate() {
   }, 0);
   const hero = document.getElementById('hero').value;
   const stat = statSelect.value;
-  const baseH = CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT 
+  const customStats = [];
+  if (stat === CONSTANTS.CUSTOM_WEIGHTED_STAT) {
+    for (let i = 1; i <= 3; i++) {
+      const s = document.getElementById('comboStat' + i).value;
+      const w = parseFloat(document.getElementById('comboWeight' + i).value);
+      if (s && !isNaN(w) && w !== 0) customStats.push({ stat: s, weight: w });
+    }
+  }
+  const baseH = CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT
     ? parseInt(document.getElementById('baseHealth').value, 10) : 0;
   const baseS = CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT 
     ? parseInt(document.getElementById('baseShield').value, 10) : 0;
@@ -47,7 +55,17 @@ function doCalculate() {
   const availableCash = Math.max(0, cash - totalReserve);
   
   let result;
-  if (useAll) {
+  if (stat === CONSTANTS.CUSTOM_WEIGHTED_STAT) {
+    result = calcFns.search({
+      items: state.items,
+      cash: availableCash,
+      hero,
+      stat,
+      customStats,
+      maxItems
+    });
+    ui.renderResults(result, { stat, hero, customStats });
+  } else if (useAll) {
     result = calcFns.search({
       items: state.items,
       cash: availableCash,
@@ -107,6 +125,8 @@ document.getElementById('cash').addEventListener('keydown', e => {
 document.getElementById('stat').addEventListener('change', () => {
   ui.showBaseHPIfNeeded();
   ui.populateSlotSelectors();
+  ui.populateComboSelectors();
+  ui.showCustomComboIfNeeded();
 });
 document.getElementById('useAllSlots').addEventListener('change', () => {
   document.getElementById('slotConfig').style.display = document.getElementById('useAllSlots').checked ? 'none' : '';

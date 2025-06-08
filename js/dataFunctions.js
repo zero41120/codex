@@ -20,7 +20,7 @@ export const getHeroList = items => {
 export const getStatTypes = items => {
   const counts = {};
   const always = ["WP", "AP", "AS"];
-  const { HP_STATS, HIT_POINT_STAT, WEAPON_EFFECT_STAT } = CONSTANTS;
+  const { HP_STATS, HIT_POINT_STAT, WEAPON_EFFECT_STAT, CUSTOM_WEIGHTED_STAT } = CONSTANTS;
 
   items.forEach(item => {
     item.attributes?.forEach(attr => {
@@ -56,7 +56,8 @@ export const getStatTypes = items => {
       s => !always.includes(s) && s !== HIT_POINT_STAT && s !== WEAPON_EFFECT_STAT
     ).sort(),
     ...(statList.includes(HIT_POINT_STAT) ? [HIT_POINT_STAT] : []),
-    ...(statList.includes(WEAPON_EFFECT_STAT) ? [WEAPON_EFFECT_STAT] : [])
+    ...(statList.includes(WEAPON_EFFECT_STAT) ? [WEAPON_EFFECT_STAT] : []),
+    CUSTOM_WEIGHTED_STAT
   ];
 };
 
