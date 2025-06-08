@@ -350,5 +350,76 @@ export const calcFns = {
     });
 
     return best;
+  },
+
+  searchWeighted: (params) => {
+    const { items, cash, hero, slots, baseH, baseS, baseA } = params;
+    const counts = {};
+    const weightMap = {};
+
+    slots.forEach(({ stat, weight }) => {
+      counts[stat] = (counts[stat] || 0) + 1;
+      weightMap[stat] = (weightMap[stat] || 0) + weight;
+    });
+
+    const uniqueStats = Object.keys(counts);
+    const totalWeight = Object.values(weightMap).reduce((a, b) => a + b, 0) || 1;
+    const budgets = {};
+    uniqueStats.forEach(s => {
+      budgets[s] = cash * (weightMap[s] / totalWeight);
+    });
+
+    const permute = (arr) => {
+      if (arr.length <= 1) return [arr];
+      const res = [];
+      arr.forEach((val, idx) => {
+        const rest = [...arr.slice(0, idx), ...arr.slice(idx + 1)];
+        permute(rest).forEach(p => res.push([val, ...p]));
+      });
+      return res;
+    };
+
+    const perms = permute(uniqueStats);
+    let bestScore = -Infinity;
+    let best = { order: uniqueStats, perStat: {} };
+
+    const scoreResult = (res, stat) => {
+      if (stat === CONSTANTS.WEAPON_EFFECT_STAT) return (res.max - 1) * 100;
+      return res.max;
+    };
+
+    perms.forEach(order => {
+      let remainingItems = [...items];
+      let remainingCash = cash;
+      const perStat = {};
+      let totalScore = 0;
+
+      for (const stat of order) {
+        if (remainingCash <= 0) break;
+        const allowed = Math.min(remainingCash, budgets[stat] * 1.2);
+        const res = calcFns.search({
+          items: remainingItems,
+          cash: allowed,
+          hero,
+          stat,
+          baseH,
+          baseS,
+          baseA,
+          maxItems: counts[stat]
+        });
+
+        perStat[stat] = res;
+        remainingCash -= res.bestCost || 0;
+        remainingItems = remainingItems.filter(it => !res.picked.some(p => p.id === it.id));
+        totalScore += scoreResult(res, stat);
+      }
+
+      if (totalScore > bestScore) {
+        bestScore = totalScore;
+        best = { order, perStat };
+      }
+    });
+
+    return best;
   }
 };

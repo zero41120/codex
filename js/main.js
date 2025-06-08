@@ -31,11 +31,12 @@ function doCalculate() {
   const maxItems = Math.min(Math.max(parseInt(document.getElementById('maxItems').value, 10) || 5, 1), CONSTANTS.MAX_ITEMS);
   const useAll = document.getElementById('useAllSlots').checked;
 
-  const slotStats = [];
+  const slotConfig = [];
   if (!useAll) {
     for (let i = 1; i <= 6; i++) {
       const val = document.getElementById('slot' + i).value;
-      slotStats.push(val === 'main' ? stat : val);
+      const weight = parseFloat(document.getElementById('weight' + i).value) || 0;
+      slotConfig.push({ stat: val === 'main' ? stat : val, weight });
     }
   }
   
@@ -56,11 +57,11 @@ function doCalculate() {
     });
     ui.renderResults(result, { stat, baseH, baseS, baseA, totalReserve, hero });
   } else {
-    result = calcFns.searchMulti({
+    result = calcFns.searchWeighted({
       items: state.items,
       cash: availableCash,
       hero,
-      stats: slotStats,
+      slots: slotConfig,
       baseH,
       baseS,
       baseA

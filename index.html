@@ -219,12 +219,30 @@
       <label>Stat:<select id="stat"></select></label>
       <label style="margin-top:0.6em;"><input id="useAllSlots" type="checkbox" checked> Use all slots</label>
       <div id="slotConfig" style="display:none;margin-top:.6em;">
-        <label>Slot 1:<select id="slot1" class="slot-select"></select></label>
-        <label>Slot 2:<select id="slot2" class="slot-select"></select></label>
-        <label>Slot 3:<select id="slot3" class="slot-select"></select></label>
-        <label>Slot 4:<select id="slot4" class="slot-select"></select></label>
-        <label>Slot 5:<select id="slot5" class="slot-select"></select></label>
-        <label>Slot 6:<select id="slot6" class="slot-select"></select></label>
+        <label>Slot 1:
+          <select id="slot1" class="slot-select"></select>
+          <input id="weight1" class="slot-weight" type="number" min="0" value="20" style="width:4em" />%
+        </label>
+        <label>Slot 2:
+          <select id="slot2" class="slot-select"></select>
+          <input id="weight2" class="slot-weight" type="number" min="0" value="20" style="width:4em" />%
+        </label>
+        <label>Slot 3:
+          <select id="slot3" class="slot-select"></select>
+          <input id="weight3" class="slot-weight" type="number" min="0" value="20" style="width:4em" />%
+        </label>
+        <label>Slot 4:
+          <select id="slot4" class="slot-select"></select>
+          <input id="weight4" class="slot-weight" type="number" min="0" value="20" style="width:4em" />%
+        </label>
+        <label>Slot 5:
+          <select id="slot5" class="slot-select"></select>
+          <input id="weight5" class="slot-weight" type="number" min="0" value="20" style="width:4em" />%
+        </label>
+        <label>Slot 6:
+          <select id="slot6" class="slot-select"></select>
+          <input id="weight6" class="slot-weight" type="number" min="0" value="20" style="width:4em" />%
+        </label>
       </div>
       <div id="baseStats-label" style="display:none;">
         <label>Base Health: <input id="baseHealth" type="number" min="0" value="250"></label>
