@@ -292,5 +292,63 @@ export const calcFns = {
       alternatives,
       total: best[0].total
     };
+  },
+
+  searchMulti: (params) => {
+    const { items, cash, hero, stats, baseH, baseS, baseA } = params;
+    const counts = {};
+    stats.forEach(s => counts[s] = (counts[s] || 0) + 1);
+    const uniqueStats = Object.keys(counts);
+
+    const permute = (arr) => {
+      if (arr.length <= 1) return [arr];
+      const res = [];
+      arr.forEach((val, idx) => {
+        const rest = [...arr.slice(0, idx), ...arr.slice(idx + 1)];
+        permute(rest).forEach(p => res.push([val, ...p]));
+      });
+      return res;
+    };
+
+    const perms = permute(uniqueStats);
+    let bestScore = -Infinity;
+    let best = { order: uniqueStats, perStat: {} };
+
+    const scoreResult = (res, stat) => {
+      if (stat === CONSTANTS.WEAPON_EFFECT_STAT) return (res.max - 1) * 100;
+      return res.max;
+    };
+
+    perms.forEach(order => {
+      let remainingItems = [...items];
+      let remainingCash = cash;
+      const perStat = {};
+      let totalScore = 0;
+
+      for (const stat of order) {
+        const res = calcFns.search({
+          items: remainingItems,
+          cash: remainingCash,
+          hero,
+          stat,
+          baseH,
+          baseS,
+          baseA,
+          maxItems: counts[stat]
+        });
+
+        perStat[stat] = res;
+        remainingCash -= res.bestCost || 0;
+        remainingItems = remainingItems.filter(it => !res.picked.some(p => p.id === it.id));
+        totalScore += scoreResult(res, stat);
+      }
+
+      if (totalScore > bestScore) {
+        bestScore = totalScore;
+        best = { order, perStat };
+      }
+    });
+
+    return best;
   }
 };
