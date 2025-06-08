@@ -29,24 +29,45 @@ function doCalculate() {
   const baseA = CONSTANTS.HP_STATS.includes(stat) || stat === CONSTANTS.HIT_POINT_STAT 
     ? parseInt(document.getElementById('baseArmor').value, 10) : 0;
   const maxItems = Math.min(Math.max(parseInt(document.getElementById('maxItems').value, 10) || 5, 1), CONSTANTS.MAX_ITEMS);
+  const useAll = document.getElementById('useAllSlots').checked;
+
+  const slotConfig = [];
+  if (!useAll) {
+    for (let i = 1; i <= 6; i++) {
+      const val = document.getElementById('slot' + i).value;
+      const weight = parseFloat(document.getElementById('weight' + i).value) || 0;
+      slotConfig.push({ stat: val === 'main' ? stat : val, weight });
+    }
+  }
   
   // Calculate available cash after reserves
   const availableCash = Math.max(0, cash - totalReserve);
   
-  // Perform calculation
-  const result = calcFns.search({
-    items: state.items, 
-    cash: availableCash, 
-    hero, 
-    stat, 
-    baseH, 
-    baseS, 
-    baseA, 
-    maxItems
-  });
-  
-  // Render results
-  ui.renderResults(result, { stat, baseH, baseS, baseA, totalReserve });
+  let result;
+  if (useAll) {
+    result = calcFns.search({
+      items: state.items,
+      cash: availableCash,
+      hero,
+      stat,
+      baseH,
+      baseS,
+      baseA,
+      maxItems: 6
+    });
+    ui.renderResults(result, { stat, baseH, baseS, baseA, totalReserve, hero });
+  } else {
+    result = calcFns.searchWeighted({
+      items: state.items,
+      cash: availableCash,
+      hero,
+      slots: slotConfig,
+      baseH,
+      baseS,
+      baseA
+    });
+    ui.renderMultiStatResults(result, { baseH, baseS, baseA, hero });
+  }
 }
 
 // Data loading
@@ -79,7 +100,13 @@ document.getElementById('calculate').addEventListener('click', doCalculate);
 document.getElementById('cash').addEventListener('keydown', e => {
   if (e.key === "Enter") doCalculate();
 });
-document.getElementById('stat').addEventListener('change', ui.showBaseHPIfNeeded);
+document.getElementById('stat').addEventListener('change', () => {
+  ui.showBaseHPIfNeeded();
+  ui.populateSlotSelectors();
+});
+document.getElementById('useAllSlots').addEventListener('change', () => {
+  document.getElementById('slotConfig').style.display = document.getElementById('useAllSlots').checked ? 'none' : '';
+});
 
 // Initialize the app
 loadData();
