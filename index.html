@@ -128,12 +128,12 @@
       gap: 0.3em;
     }
     
-    .reserve-fields input[type="number"] {
-      width: 75px;
+    .reserve-fields select {
+      width: 100%;
       min-width: 30px;
       padding: 0.32em 0.3em;
       margin: 0;
-      font-size: 0.99em;
+      font-size: 0.92em;
     }
     
     .reserve-fields b {
@@ -207,12 +207,12 @@
       <h1>OW Stadium Build Planner<br><span style="font-size:.86em;font-weight:400;display:block;margin-top:.1em;letter-spacing:.03em;">Max Stat Calculator</span></h1>
       <label>Cash Amount:<input id="cash" type="number" min="0" value="10000"></label>
       <div class="reserve-fields">
-        <b>Reserve cash for 5 items (excluded from calculation):</b>
-        <label>1: <input id="reserve1" type="number" min="0" value="0"></label>
-        <label>2: <input id="reserve2" type="number" min="0" value="0"></label>
-        <label>3: <input id="reserve3" type="number" min="0" value="0"></label>
-        <label>4: <input id="reserve4" type="number" min="0" value="0"></label>
-        <label>5: <input id="reserve5" type="number" min="0" value="0"></label>
+        <b>Reserve items (cost excluded from calculation):</b>
+        <label>1: <select id="reserve1" class="reserve-select"></select></label>
+        <label>2: <select id="reserve2" class="reserve-select"></select></label>
+        <label>3: <select id="reserve3" class="reserve-select"></select></label>
+        <label>4: <select id="reserve4" class="reserve-select"></select></label>
+        <label>5: <select id="reserve5" class="reserve-select"></select></label>
       </div>
       <label>Number of Items:<input id="maxItems" type="number" min="1" max="6" value="5"></label>
       <label>Hero:<select id="hero"></select></label>

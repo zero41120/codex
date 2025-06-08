@@ -58,6 +58,43 @@ export const ui = {
     });
   },
 
+  populateReserveSelectors: () => {
+    const hero = document.getElementById('hero').value;
+    const selects = document.querySelectorAll('.reserve-select');
+    const items = [...state.items];
+
+    items.sort((a, b) => {
+      const aMatch = hero === 'All' ? !a.character : a.character === hero;
+      const bMatch = hero === 'All' ? !b.character : b.character === hero;
+      if (aMatch !== bMatch) return aMatch ? -1 : 1;
+      if (a.cost !== b.cost) return a.cost - b.cost;
+      return a.name.localeCompare(b.name);
+    });
+
+    const getAttrInfo = (attrs = []) =>
+      attrs
+        .filter(at => at.type !== 'description')
+        .map(at => `${at.type} ${at.value}`)
+        .join(', ');
+
+    selects.forEach(sel => {
+      const prev = sel.value;
+      sel.innerHTML = '';
+      const noneOpt = document.createElement('option');
+      noneOpt.value = '';
+      noneOpt.textContent = 'None';
+      sel.appendChild(noneOpt);
+      items.forEach(item => {
+        const op = document.createElement('option');
+        op.value = item.id;
+        const info = getAttrInfo(item.attributes);
+        op.textContent = `${item.cost} - ${item.name}${info ? ' - ' + info : ''}`;
+        sel.appendChild(op);
+      });
+      sel.value = Array.from(sel.options).some(o => o.value === prev) ? prev : '';
+    });
+  },
+
   renderResultString: (result, params) => {
     const { stat, baseH, baseS, baseA, hero } = params;
     const { HIT_POINT_STAT, WEAPON_EFFECT_STAT, HP_STATS, STAT_DISPLAY_NAMES } = CONSTANTS;
